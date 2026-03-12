@@ -4,3 +4,4 @@
 
 使用WikitAPI的wikidot站点工具，自用
 
+"# koishi-plugin-wikit-querier" 

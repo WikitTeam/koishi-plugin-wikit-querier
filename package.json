@@ -15,7 +15,6 @@
   },
   "scripts": {
     "build": "koishi-scripts build",
-    "ship": "npm run build && git add . && f() { git commit -m \"$1\" && git push && npm publish; }; f"
   },
   "keywords": [
     "chatbot",

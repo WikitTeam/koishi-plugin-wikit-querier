@@ -1,7 +1,7 @@
 {
   "name": "koishi-plugin-wikit-querier",
   "description": "使用WikitAPI的wikidot站点工具，自用",
-  "version": "1.8.8",
+  "version": "1.8.9",
   "main": "dist/index.js",
   "typings": "dist/index.d.ts",
   "files": [
@@ -22,15 +22,15 @@
     "plugin"
   ],
   "dependencies": {
-    "@satorijs/element": "^3.1.8",
-    "koishi-thirdeye": "^1.1.0"
+    "@satorijs/element": "latest",
+    "koishi-thirdeye": "latest"
   },
   "devDependencies": {
-    "@koishijs/scripts": "^4.5.1",
-    "koishi-plugin-adapter-onebot": "^6.9.0",
-    "typescript": "^5.0.0"
+    "@koishijs/scripts": "latest",
+    "koishi-plugin-adapter-onebot": "latest",
+    "typescript": "latest"
   },
   "peerDependencies": {
-    "koishi": "^4.18.7"
+    "koishi": "^4.18.0"
   }
 }

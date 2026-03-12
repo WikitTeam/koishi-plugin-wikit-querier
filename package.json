@@ -33,7 +33,14 @@
   "devDependencies": {
     "koishi-plugin-adapter-onebot": "^6.9.0"
   },
-    "devDependencies": {
-    "koishi-scripts": "^4.5.1"
+      "dependencies": {
+    "koishi-thirdeye": "^1.1.0"
+  },
+  "devDependencies": {
+    "koishi-scripts": "^4.5.1",
+    "typescript": "^5.0.0"
+  },
+  "peerDependencies": {
+    "koishi": "^4.15.0"
   }
 }

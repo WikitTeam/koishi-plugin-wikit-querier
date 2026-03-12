@@ -1,7 +1,7 @@
 {
   "name": "koishi-plugin-wikit-querier",
   "description": "使用WikitAPI的wikidot站点工具，自用",
-  "version": "1.9.0",
+  "version": "1.9.1",
   "main": "lib/index.js",
   "typings": "lib/index.d.ts",
   "files": [
@@ -14,7 +14,7 @@
     "url": "git+https://github.com/Laimuslime/koishi-plugin-wikit-querier.git"
   },
   "scripts": {
-    "build": "koishi-scripts build"
+    "build": "tsc"
   },
   "keywords": [
     "chatbot",

@@ -1,11 +1,17 @@
 {
   "name": "koishi-plugin-wikit-querier",
   "description": "使用WikitAPI的wikidot站点工具，自用",
+<<<<<<< HEAD
   "version": "1.9.3",
   "main": "dist/index.js",
   "typings": "dist/index.d.ts",
+=======
+  "version": "1.9.2",
+  "main": "lib/index.js",
+  "typings": "lib/index.d.ts",
+>>>>>>> c6496e7c41434644702404babefa8401917c48c6
   "files": [
-    "dist"
+    "lib"
   ],
   "license": "MIT",
   "homepage": "https://github.com/Laimuslime/koishi-plugin-wikit-querier",
@@ -14,7 +20,11 @@
     "url": "git+https://github.com/Laimuslime/koishi-plugin-wikit-querier.git"
   },
   "scripts": {
+<<<<<<< HEAD
     "build": "koishi-scripts build"
+=======
+    "build": "tsc"
+>>>>>>> c6496e7c41434644702404babefa8401917c48c6
   },
   "keywords": [
     "chatbot",
@@ -26,7 +36,7 @@
     "koishi-thirdeye": "latest"
   },
   "devDependencies": {
-    "@koishijs/scripts": "latest",
+    "@koishijs/scripts": "4.5.2",
     "koishi-plugin-adapter-onebot": "latest",
     "typescript": "latest"
   },

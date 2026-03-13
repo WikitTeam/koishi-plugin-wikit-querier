@@ -652,7 +652,7 @@ export function apply(ctx: Context, config: Config): void {
       }
     });
 
-cmd
+  cmd
     .subcommand("wikit-search <...args:string>", "查询文章。")
     .alias("wikit-sr")
     .option("tags", "-t <tags:string> 按标签过滤（多个标签用中英文逗号分隔，全包含）")

@@ -52,19 +52,17 @@ export async function wikitApiRequest(
   if (endpointIndex >= apiList.length) {
     throw new Error("所有API端点均已尝试但均失败");
   }
-
+ 
   let variables: Record<string, any> = {};
-  const branchLongName: string | null = WikiInfo[name]?.wiki;
+  const wikiLongName: string | null = WikiInfo[name]?.wiki;
 
-   if (queryString.includes("query titleQuery")) {
-    variables = { query: param, anyBaseWiki: branchLongName ? [branchLongName] : null };
+  if (queryString.includes("query titleQuery")) {
+    variables = { query: param, anyBaseWiki: wikiLongName ? [wikiLongName] : null };
   } else if (queryString.includes("query userQuery")) {
-    variables = { query: param, baseWiki: branchLongName };
+    variables = { query: param, baseWiki: wikiLongName };
   } else if (queryString.includes("query userRankQuery")) {
-    variables = { baseUrl: branchLongName };
+    variables = { baseWiki: wikiLongName }; 
   } else if (queryString.includes("query userGlobalQuery")) {
-    variables = { query: param };
-  }
 
   try {
     const response: Response = await fetch(apiList[endpointIndex], {
@@ -113,4 +111,5 @@ export async function wikitApiRequest(
     }
     throw error;
   }
+ }
 }

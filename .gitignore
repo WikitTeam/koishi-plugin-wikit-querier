@@ -7,10 +7,7 @@ npm-debug.log
 yarn-debug.log
 yarn-error.log
 tsconfig.tsbuildinfo
-<<<<<<< HEAD
 git.txt
-=======
->>>>>>> f3c566af93444e4348c8b349dc72aad696e5ec4c
 
 .eslintcache
 .DS_Store

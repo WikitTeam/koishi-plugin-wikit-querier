@@ -208,8 +208,8 @@ export function apply(ctx: Context, config: Config): void {
         if (!wiki) return "缺少分站参数。用法：wikit-ban site 用户名 分站名 (加 -r 参数为移除)";
         if (!config.wikidotUsername || !config.wikidotPassword) return "未配置分站管理账号。请先在 Koishi 插件配置页中填写 Wikidot 账号和密码。";
 
-        const validwikies = ["all", ...Object.keys(WikiInfo)];
-        if (!validwikies.includes(wiki.toLowerCase())) return `检测不到名为“${wiki}”的分部，请检查拼写是否正确。`;
+        const validWikis = ["all", ...Object.keys(WikiInfo)];
+        if (!validWikis.includes(wiki.toLowerCase())) return `检测不到名为“${wiki}”的分部，请检查拼写是否正确。`;
 
         const wikiName = WikiInfo[wiki.toLowerCase()]?.wiki || wiki.toLowerCase();
         const actionType = opts.remove ? "remove" : "ban";
@@ -663,19 +663,19 @@ export function apply(ctx: Context, config: Config): void {
 
       const validWikies = ["all", ...Object.keys(WikiInfo)];
       const lastArg = args[args.length - 1].toLowerCase();
-      let finalwiki = "all";
+      let finalWiki = "all";
       let titleName = "";
 
       if (args.length > 1) {
         if (validWikies.includes(lastArg)) {
-          finalwiki = lastArg;
+          finalWiki = lastArg;
           titleName = args.slice(0, -1).join(" ");
         } else {
           return <template>查询失败：检测不到名为“{lastArg}”的分部，请检查拼写是否正确。</template>;
         }
       } else {
         titleName = args[0];
-        finalwiki = (await getDefaultWiki(argv.session)) || "all";
+        finalWiki = (await getDefaultWiki(argv.session)) || "all";
       }
 
       if (!titleName) return <template>请提供文章标题。</template>;
@@ -691,12 +691,12 @@ export function apply(ctx: Context, config: Config): void {
             }`,
             variables: { query: titleName, tags: tagsArray }
           };
-          if (finalwiki !== "all") payload.variables.wiki = [WikiInfo[finalwiki]?.wiki || finalwiki];
+          if (finalWiki !== "all") payload.variables.wiki = [WikiInfo[finalWiki]?.wiki || finalWiki];
           
           const data = await rawGraphql(payload.query, payload.variables);
           articles = data?.data?.articles?.nodes || [];
         } else {
-          const result = await wikitApiRequest(titleName, finalwiki, 0, queries.titleQuery);
+          const result = await wikitApiRequest(titleName, finalWiki, 0, queries.titleQuery);
           articles = (result as TitleQueryResponse)?.articles?.nodes || [];
         }
 

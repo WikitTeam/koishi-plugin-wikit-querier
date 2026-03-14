@@ -23,7 +23,6 @@
   ],
   "dependencies": {
     "@satorijs/element": "latest",
-    "koishi-thirdeye": "latest"
   },
   "devDependencies": {
     "@koishijs/scripts": "4.5.2",

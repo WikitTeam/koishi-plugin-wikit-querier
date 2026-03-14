@@ -209,7 +209,7 @@ export function apply(ctx: Context, config: Config): void {
         if (!config.wikidotUsername || !config.wikidotPassword) return "未配置分站管理账号。请先在 Koishi 插件配置页中填写 Wikidot 账号和密码。";
 
         const validWikis = ["all", ...Object.keys(WikiInfo)];
-        if (!validWikis.includes(wiki.toLowerCase())) return `检测不到名为“${wiki}”的分部，请检查拼写是否正确。`;
+        if (!validWikis.includes(wiki.toLowerCase())) return `检测不到名为“${wiki}”的维基，请检查拼写是否正确。`;
 
         const wikiName = WikiInfo[wiki.toLowerCase()]?.wiki || wiki.toLowerCase();
         const actionType = opts.remove ? "remove" : "ban";
@@ -512,7 +512,7 @@ export function apply(ctx: Context, config: Config): void {
       if (!author) return <template>请提供作者名。</template>;
 
       const validwikies = ["all", ...Object.keys(WikiInfo)];
-      if (wiki && !validwikies.includes(wiki.toLowerCase())) return <template>查询失败：检测不到名为“{wiki}”的分部，请检查拼写是否正确。</template>;
+      if (wiki && !validwikies.includes(wiki.toLowerCase())) return <template>查询失败：检测不到名为“{wiki}”的维基，请检查拼写是否正确。</template>;
 
       let finalWiki = wiki ? wiki.toLowerCase() : ((await getDefaultWiki(argv.session)) || "all");
       let authorName = author;
@@ -671,7 +671,7 @@ export function apply(ctx: Context, config: Config): void {
           finalWiki = lastArg;
           titleName = args.slice(0, -1).join(" ");
         } else {
-          return <template>查询失败：检测不到名为“{lastArg}”的分部，请检查拼写是否正确。</template>;
+          return <template>查询失败：检测不到名为“{lastArg}”的维基，请检查拼写是否正确。</template>;
         }
       } else {
         titleName = args[0];
@@ -738,7 +738,7 @@ export function apply(ctx: Context, config: Config): void {
         } catch(e) {}
       } else {
         finalWiki = finalWiki || (await getDefaultWiki(argv.session)) || "all";
-        if (finalWiki === "all") return <template>请指定分部名称，或直接输入页面的完整网址。</template>;
+        if (finalWiki === "all") return <template>请指定维基名称，或直接输入页面的完整网址。</template>;
         const wikiName = WikiInfo[finalWiki.toLowerCase()]?.wiki || finalWiki;
         finalUrl = `https://${wikiName}.wikidot.com/${urlOrName}`;
         finalWiki = wikiName;

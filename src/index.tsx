@@ -12,11 +12,11 @@ import type { Article, AuthorRank, TitleQueryResponse, UserQueryResponse, UserRa
 
 declare module "koishi" {
   interface Tables {
-    wikitQuerier: WikitQuerierTable;
+    wikitQuerierV2: WikitQuerierTable;
   }
 }
 
-interface WikitQuerierTable {
+interface WikitQuerierV2Table {
   id?: number;
   platform: string;
   channelId: string;
@@ -57,7 +57,7 @@ export const Config: Schema<Config> = Schema.object({
 }).description("查询与独立后台配置");
 
 export function apply(ctx: Context, config: Config): void {
-  ctx.model.extend("wikitQuerier", {
+  ctx.model.extend("wikitQuerierV2", {
     id: "unsigned",
     platform: "string(64)",
     channelId: "string(64)",
@@ -77,7 +77,7 @@ export function apply(ctx: Context, config: Config): void {
   const getDefaultWiki = async (session: Session): Promise<string | undefined> => {
     const platform = session.event.platform;
     const channelId = session.event.channel.id;
-    const data = await ctx.database.get("wikitQuerier", { platform, channelId });
+    const data = await ctx.database.get("wikitQuerierV2", { platform, channelId });
     return data.length > 0 ? data[0].defaultWiki : undefined;
   };
 
@@ -163,7 +163,7 @@ export function apply(ctx: Context, config: Config): void {
       if (!wiki || !Object.keys(WikiInfo).includes(wiki) || wiki === "all") {
         return "维基名称不正确。";
       }
-      ctx.database.upsert("wikitQuerier", [{ channelId, platform, defaultWiki: wiki }], ["platform", "channelId"]);
+      ctx.database.upsert("wikitQuerierV2", [{ channelId, platform, defaultWiki: wiki }], ["platform", "channelId"]); // 👉 这里加上 V2
       return `已将本群默认查询维基设置为: ${wiki}`;
     });
 

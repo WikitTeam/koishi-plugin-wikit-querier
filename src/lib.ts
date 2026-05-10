@@ -1,8 +1,8 @@
 import type { Article, AuthorRank, TitleQueryResponse, UserQueryResponse, UserRankQueryResponse } from "./types";
 
 const apiList: string[] = [
-  "https://wikit.unitreaty.org/apiv1/graphql",
   "https://wikit2.brcnwiki.com/apiv1/graphql",
+  "https://wikit.unitreaty.org/apiv1/graphql",
   "https://wikittest.unitreaty.org/apiv1/graphql",
   
 ];

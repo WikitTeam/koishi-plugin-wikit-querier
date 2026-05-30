@@ -1,4 +1,4 @@
-# koishi-plugin-wikit-querier
+# Koishi-plugin-wikit-querier
 
 [![npm](https://img.shields.io/npm/v/koishi-plugin-wikit-querier?style=flat-square)](https://www.npmjs.com/package/koishi-plugin-wikit-querier)
 

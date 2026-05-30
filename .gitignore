@@ -17,3 +17,4 @@ git.txt
 *.ntvs*
 *.njsproj
 *.sln
+.claude

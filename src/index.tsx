@@ -13,6 +13,7 @@ import type { Article, AuthorRank, TitleQueryResponse, UserQueryResponse, UserRa
 declare module "koishi" {
   interface Tables {
     wikitQuerierV2: WikitQuerierV2Table;
+    wikitForumSubs: WikitForumSubsTable;
   }
 }
 
@@ -23,9 +24,15 @@ interface WikitQuerierV2Table {
   defaultWiki: string;
 }
 
+interface WikitForumSubsTable {
+  id?: number;
+  platform: string;
+  userId: string;
+}
+
 export const name: string = "wikit-querier";
 
-export const inject: string[] = ["database"];
+export const inject: string[] = ["database", "router"];
 
 const authorPageTagsConfig: Record<string, string[]> = {
   "if-backrooms": ["作者", "原创", "author:"],
@@ -39,6 +46,7 @@ export interface Config {
   bannedTitles: string[];
   bannedTags: string[];
   apiToken: string;
+  webhookToken: string;
   wikitToken: string;
   wikidotUsername?: string;
   wikidotPassword?: string;
@@ -50,6 +58,7 @@ export const Config: Schema<Config> = Schema.object({
   bannedTitles: Schema.array(Schema.string()).description("禁止查询的文章列表"),
   bannedTags: Schema.array(Schema.string()).description("禁止查询的标签列表"),
   apiToken: Schema.string().default("wikit_secure_token_123").description("与独立后台通信的验证 Token"),
+  webhookToken: Schema.string().default("whk_wikit_forum_notify").description("Webhook 接口验证 Token"),
   wikitToken: Schema.string().required().description("Wikit官方网站绑定与解绑通信 Token (必填)"),
   wikidotUsername: Schema.string().description("用于执行分站站务的 Wikidot 账号"),
   wikidotPassword: Schema.string().role("secret").description("用于执行分站站务的 Wikidot 密码"),
@@ -65,7 +74,17 @@ export function apply(ctx: Context, config: Config): void {
   }, {
     primary: 'id',
     autoInc: true,
-    unique: [['platform', 'channelId']] 
+    unique: [['platform', 'channelId']]
+  });
+
+  ctx.model.extend("wikitForumSubs", {
+    id: "unsigned",
+    platform: "string(64)",
+    userId: "string(64)",
+  }, {
+    primary: 'id',
+    autoInc: true,
+    unique: [['platform', 'userId']]
   });
 
   const normalizeUrl = (url: string): string =>
@@ -109,8 +128,11 @@ export function apply(ctx: Context, config: Config): void {
 
   let cmd = ctx.command('wikit', 'Wikit 综合查询与管理工具');
 
-  cmd.subcommand("wikit-diag", "网络连通性诊断测试")
+  cmd.subcommand("wikit-diag", "网络连通性诊断测试 (仅限管理员)")
     .action(async ({ session }): Promise<string> => {
+      const adminList = await getAdmins();
+      if (!adminList.includes(String(session.userId))) return "权限不足，你无法使用诊断指令。";
+
       let msg = "【Wikit 综合网络诊断报告】\n";
       msg += `操作人QQ: ${session.userId}\n\n`;
 
@@ -158,6 +180,9 @@ export function apply(ctx: Context, config: Config): void {
     .subcommand("wikit-default-wiki <维基名称:string>", "设置默认维基。")
     .alias("wikit-db")
     .action(async (argv: Argv, wiki: string): Promise<string> => {
+      const adminList = await getAdmins();
+      if (!adminList.includes(String(argv.session.userId))) return "权限不足，仅管理员可设置默认维基。";
+
       const platform = argv.session.event.platform;
       const channelId = argv.session.event.channel.id;
       if (!wiki || !Object.keys(WikiInfo).includes(wiki) || wiki === "all") {
@@ -923,11 +948,67 @@ export function apply(ctx: Context, config: Config): void {
       if (!adminList.includes(String(session.userId))) return "权限不足！";
 
       try {
-        // 让 Koishi 底层的数据库驱动自己把旧表删掉
         await (ctx.database as any).drop("wikitQuerier");
         return "微创手术成功：旧的 wikitQuerier 表已彻底删除！请立刻重启 Koishi！";
       } catch (e: any) {
         return `删除失败：${e.message}`;
       }
     });
+
+  cmd
+    .subcommand("wikit-forum-sub", "订阅 Forum 动态推送（私信接收）")
+    .alias("wikit-fs")
+    .action(async ({ session }): Promise<string> => {
+      const platform = session.event.platform;
+      const userId = String(session.userId);
+      const existing = await ctx.database.get("wikitForumSubs", { platform, userId });
+      if (existing.length > 0) return "你已经订阅过了，无需重复操作。";
+      await ctx.database.create("wikitForumSubs", { platform, userId });
+      return "订阅成功！后续 Forum 动态将通过私信推送给你。";
+    });
+
+  cmd
+    .subcommand("wikit-forum-unsub", "取消订阅 Forum 动态推送")
+    .alias("wikit-fu")
+    .action(async ({ session }): Promise<string> => {
+      const platform = session.event.platform;
+      const userId = String(session.userId);
+      const existing = await ctx.database.get("wikitForumSubs", { platform, userId });
+      if (existing.length === 0) return "你尚未订阅，无需取消。";
+      await ctx.database.remove("wikitForumSubs", { platform, userId });
+      return "已取消订阅。";
+    });
+
+  ctx.router.post("/webhook/forum", async (reqCtx) => {
+    const token = reqCtx.get("Authorization") || reqCtx.query.token;
+    if (token !== config.webhookToken) {
+      reqCtx.status = 403;
+      reqCtx.body = { success: false, error: "invalid token" };
+      return;
+    }
+
+    const { username, text } = reqCtx.request.body as { username?: string; text?: string };
+    if (!username || !text) {
+      reqCtx.status = 400;
+      reqCtx.body = { success: false, error: "missing username or text" };
+      return;
+    }
+
+    const subs = await ctx.database.get("wikitForumSubs", {});
+    const message = `【Forum 动态】\n${username}：${text}`;
+
+    let sent = 0;
+    for (const sub of subs) {
+      try {
+        const bots = ctx.bots.filter(bot => bot.platform === sub.platform);
+        if (bots.length > 0) {
+          await bots[0].sendPrivateMessage(sub.userId, message);
+          sent++;
+        }
+      } catch {}
+    }
+
+    reqCtx.status = 200;
+    reqCtx.body = { success: true, sent };
+  });
 }

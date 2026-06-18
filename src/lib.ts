@@ -11,6 +11,7 @@ export const WikiInfo: Record<string, { wiki: string }> = {
   /* 分部名称格式："站点简写": { wiki: "Wikit里的Wiki全名" }, 例如："ubmh": { wiki: "ubmh" } */
   "ubmh": { wiki: "ubmh" },
   "scp-cloud": { wiki: "scp-wiki-cloud" },
+  "scp-mc": { wiki: "scp-wiki-mc" },
   "cloud": { wiki: "backroom-wiki-cn" },
   "scr": { wiki: "scr-wiki" },
   "dfc": { wiki: "deep-forest-club" },

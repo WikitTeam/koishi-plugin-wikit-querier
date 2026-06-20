@@ -94,11 +94,19 @@ export function apply(ctx: Context, config: Config): void {
       .replace(/^https?:\/\/scp-wiki-cn.wikidot.com/, "https://scpcn.backroomswiki.cn")
       .replace(/^https?:\/\/([a-z]+-wiki-cn|nationarea)/, "https://$1");
 
-  const formatWikidotNotification = (text: string): string =>
-    text
+  const formatWikidotNotification = (text: string): string => {
+    const reply = text.match(
+      /\[\[\*?user\s+([^\]]+)\]\][\s\S]*?\*\*([^*]+)\*\*[\s\S]*?\[\[\[([^|\]]+)\|[^\]]+\]\]\]/i,
+    );
+    if (reply) {
+      return `回复人：${reply[1].trim()}\n被回复的页面标题：${reply[2].trim()}\n查看原页面：${reply[3].trim()}`;
+    }
+
+    return text
       .replace(/\[\[\[([^|\]]+)\|([^\]]+)\]\]\]/g, "$2：$1")
       .replace(/\[\[\*?user\s+([^\]]+)\]\]/gi, "$1")
       .replace(/\*\*([^*]+)\*\*/g, "$1");
+  };
   
   const getDefaultWiki = async (session: Session): Promise<string | undefined> => {
     const platform = session.event.platform;

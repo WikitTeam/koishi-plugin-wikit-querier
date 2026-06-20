@@ -29,6 +29,5 @@ jobs:
         run: npm run build
 
       - name: Publish to npm
+        # 使用 npm 可信出版机制，此处不再需要配置 Token 环境变量
         run: npm publish --access public --provenance
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

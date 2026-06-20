@@ -14,6 +14,7 @@ import type { Article, AuthorRank, TitleQueryResponse, UserQueryResponse, UserRa
 declare module "koishi" {
   interface Tables {
     wikitQuerierV2: WikitQuerierV2Table;
+    wikitForumSubs: WikitForumSubsTable;
   }
 }
 
@@ -22,6 +23,12 @@ interface WikitQuerierV2Table {
   platform: string;
   channelId: string;
   defaultWiki: string;
+}
+
+interface WikitForumSubsTable {
+  id?: number;
+  platform: string;
+  userId: string;
 }
 
 export const name: string = "wikit-querier";
@@ -69,6 +76,16 @@ export function apply(ctx: Context, config: Config): void {
     primary: 'id',
     autoInc: true,
     unique: [['platform', 'channelId']]
+  });
+
+  ctx.model.extend("wikitForumSubs", {
+    id: "unsigned",
+    platform: "string(64)",
+    userId: "string(64)",
+  }, {
+    primary: 'id',
+    autoInc: true,
+    unique: [['platform', 'userId']]
   });
 
   const normalizeUrl = (url: string): string =>
@@ -937,6 +954,30 @@ export function apply(ctx: Context, config: Config): void {
       } catch (e: any) {
         return `删除失败：${e.message}`;
       }
+    });
+
+  cmd
+    .subcommand("wikit-forum-sub", "订阅 Forum 动态推送（私信接收）")
+    .alias("wikit-fs")
+    .action(async ({ session }): Promise<string> => {
+      const platform = session.event.platform;
+      const userId = String(session.userId);
+      const existing = await ctx.database.get("wikitForumSubs", { platform, userId });
+      if (existing.length > 0) return "你已经订阅过了，无需重复操作。";
+      await ctx.database.create("wikitForumSubs", { platform, userId });
+      return "订阅成功！后续 Wikit 动态将通过私信推送给你。";
+    });
+
+  cmd
+    .subcommand("wikit-forum-unsub", "取消订阅 Forum 动态推送")
+    .alias("wikit-fu")
+    .action(async ({ session }): Promise<string> => {
+      const platform = session.event.platform;
+      const userId = String(session.userId);
+      const existing = await ctx.database.get("wikitForumSubs", { platform, userId });
+      if (existing.length === 0) return "你尚未订阅，无需取消。";
+      await ctx.database.remove("wikitForumSubs", { platform, userId });
+      return "已取消订阅。";
     });
 
   ctx.server.post("/webhook/forum", async (reqCtx) => {

@@ -1,4 +1,5 @@
 import { Context, Schema, h } from "koishi";
+import type {} from "@koishijs/plugin-server" with { "resolution-mode": "import" };
 import { queries } from "./api/graphql";
 import { BACKEND_URL, BROWSER_HEADERS, GRAPHQL_ENDPOINTS, checkProxyStatus } from "./api/client";
 import { 
@@ -32,7 +33,7 @@ interface WikitForumSubsTable {
 
 export const name: string = "wikit-querier";
 
-export const inject: string[] = ["database", "router"];
+export const inject: string[] = ["database", "server"];
 
 const authorPageTagsConfig: Record<string, string[]> = {
   "if-backrooms": ["作者", "原创", "author:"],
@@ -979,7 +980,7 @@ export function apply(ctx: Context, config: Config): void {
       return "已取消订阅。";
     });
 
-  ctx.router.post("/webhook/forum", async (reqCtx) => {
+  ctx.server.post("/webhook/forum", async (reqCtx) => {
     const token = reqCtx.get("Authorization") || reqCtx.query.token;
     if (token !== config.webhookToken) {
       reqCtx.status = 403;
@@ -987,7 +988,11 @@ export function apply(ctx: Context, config: Config): void {
       return;
     }
 
-    const { username, text } = reqCtx.request.body as { username?: string; text?: string };
+    const body = (reqCtx.request as unknown as {
+      body?: { username?: unknown; text?: unknown };
+    }).body;
+    const username = typeof body?.username === "string" ? body.username : undefined;
+    const text = typeof body?.text === "string" ? body.text : undefined;
     if (!username || !text) {
       reqCtx.status = 400;
       reqCtx.body = { success: false, error: "missing username or text" };

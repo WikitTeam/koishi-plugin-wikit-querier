@@ -93,6 +93,12 @@ export function apply(ctx: Context, config: Config): void {
       .replace(/^https?:\/\/backrooms-wiki-cn.wikidot.com/, "https://brcn.backroomswiki.cn")
       .replace(/^https?:\/\/scp-wiki-cn.wikidot.com/, "https://scpcn.backroomswiki.cn")
       .replace(/^https?:\/\/([a-z]+-wiki-cn|nationarea)/, "https://$1");
+
+  const formatWikidotNotification = (text: string): string =>
+    text
+      .replace(/\[\[\[([^|\]]+)\|([^\]]+)\]\]\]/g, "$2：$1")
+      .replace(/\[\[\*?user\s+([^\]]+)\]\]/gi, "$1")
+      .replace(/\*\*([^*]+)\*\*/g, "$1");
   
   const getDefaultWiki = async (session: Session): Promise<string | undefined> => {
     const platform = session.event.platform;
@@ -1009,7 +1015,7 @@ export function apply(ctx: Context, config: Config): void {
     }
 
     try {
-      await bot.sendPrivateMessage(qq, text);
+      await bot.sendPrivateMessage(qq, formatWikidotNotification(text));
       reqCtx.status = 200;
       reqCtx.body = { success: true, qq };
     } catch (error: any) {

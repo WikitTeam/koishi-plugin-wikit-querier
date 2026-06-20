@@ -102,6 +102,13 @@ export function apply(ctx: Context, config: Config): void {
       return `回复人：${reply[1].trim()}\n被回复的页面标题：${reply[2].trim()}\n查看原页面：${reply[3].trim()}`;
     }
 
+    const plainReply = text.match(
+      /(?:^|\n)\s*\*?\s*(.+?)在您的文章(.+?)的讨论区发表了回复\s+查看[：:]\s*(https?:\/\/\S+)/i,
+    );
+    if (plainReply) {
+      return `回复人：${plainReply[1].trim()}\n被回复的页面标题：${plainReply[2].trim()}\n查看原页面：${plainReply[3].trim()}`;
+    }
+
     return text
       .replace(/\[\[\[([^|\]]+)\|([^\]]+)\]\]\]/g, "$2：$1")
       .replace(/\[\[\*?user\s+([^\]]+)\]\]/gi, "$1")

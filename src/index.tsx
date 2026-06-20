@@ -14,7 +14,6 @@ import type { Article, AuthorRank, TitleQueryResponse, UserQueryResponse, UserRa
 declare module "koishi" {
   interface Tables {
     wikitQuerierV2: WikitQuerierV2Table;
-    wikitForumSubs: WikitForumSubsTable;
   }
 }
 
@@ -23,12 +22,6 @@ interface WikitQuerierV2Table {
   platform: string;
   channelId: string;
   defaultWiki: string;
-}
-
-interface WikitForumSubsTable {
-  id?: number;
-  platform: string;
-  userId: string;
 }
 
 export const name: string = "wikit-querier";
@@ -76,16 +69,6 @@ export function apply(ctx: Context, config: Config): void {
     primary: 'id',
     autoInc: true,
     unique: [['platform', 'channelId']]
-  });
-
-  ctx.model.extend("wikitForumSubs", {
-    id: "unsigned",
-    platform: "string(64)",
-    userId: "string(64)",
-  }, {
-    primary: 'id',
-    autoInc: true,
-    unique: [['platform', 'userId']]
   });
 
   const normalizeUrl = (url: string): string =>
@@ -956,30 +939,6 @@ export function apply(ctx: Context, config: Config): void {
       }
     });
 
-  cmd
-    .subcommand("wikit-forum-sub", "订阅 Forum 动态推送（私信接收）")
-    .alias("wikit-fs")
-    .action(async ({ session }): Promise<string> => {
-      const platform = session.event.platform;
-      const userId = String(session.userId);
-      const existing = await ctx.database.get("wikitForumSubs", { platform, userId });
-      if (existing.length > 0) return "你已经订阅过了，无需重复操作。";
-      await ctx.database.create("wikitForumSubs", { platform, userId });
-      return "订阅成功！后续 Forum 动态将通过私信推送给你。";
-    });
-
-  cmd
-    .subcommand("wikit-forum-unsub", "取消订阅 Forum 动态推送")
-    .alias("wikit-fu")
-    .action(async ({ session }): Promise<string> => {
-      const platform = session.event.platform;
-      const userId = String(session.userId);
-      const existing = await ctx.database.get("wikitForumSubs", { platform, userId });
-      if (existing.length === 0) return "你尚未订阅，无需取消。";
-      await ctx.database.remove("wikitForumSubs", { platform, userId });
-      return "已取消订阅。";
-    });
-
   ctx.server.post("/webhook/forum", async (reqCtx) => {
     const token = reqCtx.get("Authorization") || reqCtx.query.token;
     if (token !== config.webhookToken) {
@@ -989,31 +948,33 @@ export function apply(ctx: Context, config: Config): void {
     }
 
     const body = (reqCtx.request as unknown as {
-      body?: { username?: unknown; text?: unknown };
+      body?: { qq?: unknown; text?: unknown };
     }).body;
-    const username = typeof body?.username === "string" ? body.username : undefined;
+    const qq = typeof body?.qq === "string" || typeof body?.qq === "number"
+      ? String(body.qq).trim()
+      : undefined;
     const text = typeof body?.text === "string" ? body.text : undefined;
-    if (!username || !text) {
+    if (!qq || !/^\d{5,20}$/.test(qq) || !text) {
       reqCtx.status = 400;
-      reqCtx.body = { success: false, error: "missing username or text" };
+      reqCtx.body = { success: false, error: "invalid qq or text" };
       return;
     }
 
-    const subs = await ctx.database.get("wikitForumSubs", {});
-    const message = `【Forum 动态】\n${username}：${text}`;
-
-    let sent = 0;
-    for (const sub of subs) {
-      try {
-        const bots = ctx.bots.filter(bot => bot.platform === sub.platform);
-        if (bots.length > 0) {
-          await bots[0].sendPrivateMessage(sub.userId, message);
-          sent++;
-        }
-      } catch {}
+    const bot = ctx.bots.find(bot => bot.platform === "onebot");
+    if (!bot) {
+      reqCtx.status = 503;
+      reqCtx.body = { success: false, error: "onebot bot unavailable" };
+      return;
     }
 
-    reqCtx.status = 200;
-    reqCtx.body = { success: true, sent };
+    try {
+      await bot.sendPrivateMessage(qq, text);
+      reqCtx.status = 200;
+      reqCtx.body = { success: true, qq };
+    } catch (error: any) {
+      ctx.logger("wikit-querier").warn("failed to send webhook private message to %s: %s", qq, error?.message || error);
+      reqCtx.status = 502;
+      reqCtx.body = { success: false, error: "failed to send private message" };
+    }
   });
 }

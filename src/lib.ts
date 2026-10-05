@@ -25,7 +25,8 @@ export const WikiInfo: Record<string, { wiki: string }> = {
   "fr": { wiki: "backrooms-split-library" },
   "f": { wiki: "backrooms-f" },
   "r": { wiki: "r-backrooms-wiki-cn" },
-  "cas": {wiki: "cas-wiki-cn" }
+  "cas": {wiki: "cas-wiki-cn" },
+  "grup": {wiki: "psychotronicsdivision-cn"}
 };
 
 function levenshtein(a: string, b: string): number {
